@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'supabase_service.dart';
 
 class DonorHomeScreen extends StatelessWidget {
   const DonorHomeScreen({super.key});
@@ -30,8 +31,8 @@ class _FoodPostFormState extends State<FoodPostForm> {
   String selectedPeriod = 'AM';
   
   bool _isValidTimeFormat(String time) {
-    // Check if time format is valid (HH:MM or H:MM)
-    RegExp timeRegex = RegExp(r'^([0-9]|1[0-2]):([0-5][0-9])$');
+    // Check if time format is valid (HH:MM or H:MM) - 12-hour format
+    RegExp timeRegex = RegExp(r'^(0?[1-9]|1[0-2]):([0-5][0-9])$');
     return timeRegex.hasMatch(time);
   }
 
@@ -121,7 +122,7 @@ class _FoodPostFormState extends State<FoodPostForm> {
               ElevatedButton.icon(
                 icon: const Icon(Icons.send),
                 label: const Text('Post Food'),
-                onPressed: () {
+                onPressed: () async {
                   setState(() {
                     timeError = null;
                   });
@@ -131,6 +132,23 @@ class _FoodPostFormState extends State<FoodPostForm> {
                     setState(() {
                       timeError = 'Please enter time in HH:MM format (e.g., 12:30)';
                     });
+                    return;
+                  }
+                  
+                  // Add food post to storage
+                  final success = await SupabaseService.addFoodPost(
+                    descController.text,
+                    locationController.text,
+                    '${timeController.text} ${selectedPeriod}',
+                  );
+                  
+                  if (!success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Failed to post food. Please try again.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                     return;
                   }
                   

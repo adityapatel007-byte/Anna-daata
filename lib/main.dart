@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'auth_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Supabase.initialize(
+    url: 'https://gzscusalmsdeocryafbg.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6c2N1c2FsbXNkZW9jcnlhZmJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTgyNjQsImV4cCI6MjA3NDg3NDI2NH0.5UkTM5Ck8KqNgelw9w2sllicu5VaO5VGfPPbGYhkDLQ',
+  );
+  
   runApp(const MyApp());
 }
 

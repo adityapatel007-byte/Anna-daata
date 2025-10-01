@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'user_storage.dart';
+import 'supabase_service.dart';
 import 'donor_home_screen.dart';
 import 'ngo_home_screen.dart';
 
@@ -136,7 +136,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: ElevatedButton.icon(
                         icon: Icon(isSignIn ? Icons.login : Icons.person_add),
                         label: Text(isSignIn ? 'Sign In' : 'Create Account', style: const TextStyle(fontSize: 18)),
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             nameErrorText = null;
                             phoneErrorText = null;
@@ -196,9 +196,16 @@ class _AuthScreenState extends State<AuthScreen> {
                             }
                             
                             // Store account credentials
-                            UserStorage.storeAccount(email, name, phone, password);
+                            final success = await SupabaseService.storeAccount(email, name, phone, password, widget.role.toLowerCase());
                             
-                            // Navigate to home screen after account creation
+                            if (!success) {
+                              setState(() {
+                                emailErrorText = 'Failed to create account. Email might already exist.';
+                              });
+                              return;
+                            }
+                            
+                            // Navigate to home screen after account creation - BOTH go directly
                             if (widget.role == 'Volunteer') {
                               Navigator.pushReplacement(
                                 context,
@@ -214,14 +221,14 @@ class _AuthScreenState extends State<AuthScreen> {
                           }
                           
                           // Sign In validation
-                          if (!UserStorage.accountExists(email)) {
+                          if (!(await SupabaseService.accountExists(email))) {
                             setState(() {
                               emailErrorText = 'No account found. Please create an account first.';
                             });
                             return;
                           }
                           
-                          if (!UserStorage.validatePassword(email, password)) {
+                          if (!(await SupabaseService.validatePassword(email, password))) {
                             setState(() {
                               passwordErrorText = 'Incorrect password';
                             });
